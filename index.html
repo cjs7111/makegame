@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Batch Energy Tycoon</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0f172a;
+  --bg2: #1e293b;
+  --bg3: #334155;
+  --border: rgba(148,163,184,0.18);
+  --border2: rgba(148,163,184,0.35);
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --text3: #64748b;
+  --green: #4ade80;
+  --green-bg: rgba(74,222,128,0.12);
+  --blue: #60a5fa;
+  --blue-bg: rgba(96,165,250,0.12);
+  --amber: #fbbf24;
+  --amber-bg: rgba(251,191,36,0.12);
+  --red: #f87171;
+  --red-bg: rgba(248,113,113,0.12);
+  --supply-color: #60a5fa;
+  --demand-color: #fb7185;
+  --radius: 10px;
+  --radius-sm: 6px;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg2);
+  border-bottom: 0.5px solid var(--border);
+  padding: 12px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, #38bdf8, #818cf8);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+
+.logo-text {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+
+.money-badge {
+  background: var(--green-bg);
+  border: 0.5px solid rgba(74,222,128,0.3);
+  color: var(--green);
+  font-size: 16px;
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.01em;
+}
+
+.container { padding: 16px 20px; max-width: 1100px; margin: 0 auto; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.card {
+  background: var(--bg2);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.card-ai {
+  background: var(--bg3);
+  border-color: var(--border2);
+}
+
+.card-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 12px;
+}
+
+.price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.price-num {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.price-unit {
+  font-size: 11px;
+  color: var(--text3);
+}
+
+.price-trend {
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.trend-up { color: var(--red); }
+.trend-down { color: var(--green); }
+.trend-flat { color: var(--text3); }
+
+.meter-section { margin-top: 12px; }
+
+.meter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.meter-label {
+  font-size: 11px;
+  color: var(--text3);
+  width: 28px;
+  flex-shrink: 0;
+}
+
+.meter-wrap {
+  flex: 1;
+  height: 5px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.meter-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.meter-fill.supply { background: var(--supply-color); }
+.meter-fill.demand { background: var(--demand-color); }
+
+.meter-val {
+  font-size: 11px;
+  color: var(--text2);
+  width: 34px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.action-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  align-items: center;
+}
+
+.qty-input {
+  width: 60px;
+  padding: 7px 8px;
+  font-size: 13px;
+  background: var(--bg);
+  border: 0.5px solid var(--border2);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.qty-input:focus { border-color: var(--blue); }
+
+.btn {
+  flex: 1;
+  padding: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.btn:hover { opacity: 0.85; }
+.btn:active { transform: scale(0.97); }
+
+.btn-buy {
+  background: var(--blue-bg);
+  border: 0.5px solid rgba(96,165,250,0.35);
+  color: var(--blue);
+}
+
+.btn-sell {
+  background: var(--green-bg);
+  border: 0.5px solid rgba(74,222,128,0.35);
+  color: var(--green);
+}
+
+.inv-section { margin-top: 4px; }
+
+.inv-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 0.5px solid var(--border);
+}
+.inv-row:last-child { border-bottom: none; }
+
+.inv-label { font-size: 13px; color: var(--text2); }
+
+.inv-val {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.queue-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0 12px;
+}
+
+.queue-ring {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: var(--amber-bg);
+  border: 1.5px solid rgba(251,191,36,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--amber);
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 6px;
+}
+
+.queue-sub {
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: 0.04em;
+}
+
+.ai-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.ai-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: blink 1.6s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.25; } }
+
+.ai-status { font-size: 12px; color: var(--text3); }
+
+.ai-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 0.5px solid var(--border);
+}
+.ai-stat:last-child { border-bottom: none; }
+.ai-stat-label { font-size: 12px; color: var(--text3); }
+.ai-stat-val { font-size: 13px; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+
+.legend {
+  display: flex;
+  gap: 14px;
+  margin-top: 4px;
+  margin-bottom: 2px;
+}
+.legend-item {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px; color: var(--text3);
+}
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+.toast {
+  position: fixed;
+  bottom: 20px; right: 20px;
+  background: var(--red-bg);
+  border: 0.5px solid rgba(248,113,113,0.3);
+  color: var(--red);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  z-index: 100;
+}
+.toast.show { opacity: 1; }
+
+.tip {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 8px;
+  line-height: 1.6;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">⚡</div>
+    <span class="logo-text">Batch Energy Tycoon</span>
+  </div>
+  <div class="money-badge">&#x20A9; <span id="money">100</span></div>
+</header>
+
+<div class="container">
+  <div class="grid">
+
+    <div class="card">
+      <div class="card-title">오일 시장</div>
+      <div class="price-row">
+        <span class="price-num" id="oil_price">40</span>
+        <span class="price-unit">원/배럴</span>
+        <span class="price-trend" id="oil_trend"></span>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--supply-color)"></div>공급</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--demand-color)"></div>수요</div>
+      </div>
+      <div class="meter-section">
+        <div class="meter-row">
+          <span class="meter-label">공급</span>
+          <div class="meter-wrap"><div class="meter-fill supply" id="oil_s_bar" style="width:50%"></div></div>
+          <span class="meter-val" id="oil_supply">10.0</span>
+        </div>
+        <div class="meter-row">
+          <span class="meter-label">수요</span>
+          <div class="meter-wrap"><div class="meter-fill demand" id="oil_d_bar" style="width:50%"></div></div>
+          <span class="meter-val" id="oil_demand">10.0</span>
+        </div>
+      </div>
+      <div class="action-row">
+        <input type="number" class="qty-input" id="buy_oil" value="1" min="1"/>
+        <button class="btn btn-buy" onclick="buyOil()">구매</button>
+      </div>
+      <div class="tip">* 구매 시 공급 감소 → 가격 상승</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">변환 & 재고</div>
+      <div class="queue-center">
+        <div class="queue-ring" id="queue_count">0</div>
+        <div class="queue-sub">배치 처리 중 (5초)</div>
+      </div>
+      <div class="inv-section">
+        <div class="inv-row">
+          <span class="inv-label">⛽ 오일</span>
+          <span class="inv-val" id="inv_oil">0</span>
+        </div>
+        <div class="inv-row">
+          <span class="inv-label">⚡ 전기</span>
+          <span class="inv-val" id="inv_elec">0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">전기 시장</div>
+      <div class="price-row">
+        <span class="price-num" id="elec_price">80</span>
+        <span class="price-unit">원/kWh</span>
+        <span class="price-trend" id="elec_trend"></span>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--supply-color)"></div>공급</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--demand-color)"></div>수요</div>
+      </div>
+      <div class="meter-section">
+        <div class="meter-row">
+          <span class="meter-label">공급</span>
+          <div class="meter-wrap"><div class="meter-fill supply" id="elec_s_bar" style="width:50%"></div></div>
+          <span class="meter-val" id="elec_supply">10.0</span>
+        </div>
+        <div class="meter-row">
+          <span class="meter-label">수요</span>
+          <div class="meter-wrap"><div class="meter-fill demand" id="elec_d_bar" style="width:50%"></div></div>
+          <span class="meter-val" id="elec_demand">10.0</span>
+        </div>
+      </div>
+      <div class="action-row">
+        <input type="number" class="qty-input" id="sell_elec" value="1" min="1"/>
+        <button class="btn btn-sell" onclick="sell()">판매</button>
+      </div>
+      <div class="tip">* 판매 시 공급 증가 → 가격 하락</div>
+    </div>
+
+    <div class="card card-ai">
+      <div class="card-title">AI 에너지 회사</div>
+      <div class="ai-indicator">
+        <div class="ai-dot"></div>
+        <span class="ai-status">전기 구매 → 오일 생산 (60% 확률/tick)</span>
+      </div>
+      <div class="ai-stat">
+        <span class="ai-stat-label">누적 전기 구매</span>
+        <span class="ai-stat-val" id="ai_elec">0</span>
+      </div>
+      <div class="ai-stat">
+        <span class="ai-stat-label">누적 오일 생산</span>
+        <span class="ai-stat-val" id="ai_oil">0</span>
+      </div>
+      <div class="ai-stat">
+        <span class="ai-stat-label">최근 거래량</span>
+        <span class="ai-stat-val" id="ai_last">0</span>
+      </div>
+      <div class="tip" style="margin-top:12px">* 전기를 구매해 오일로 변환·공급합니다. 전기 수요 상한: 공급의 1.5배.</div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let state = {
+  money: 100,
+  inventory: { oil: 0, electricity: 0 },
+  queue: [],
+  market: {
+    oil:         { demand: 10, supply: 10, base: 40 },
+    electricity: { demand: 10, supply: 10, base: 80 }
+  },
+  ai: { totalElecBought: 0, totalOilProduced: 0, lastTrade: 0 },
+  prevPrices: { oil: null, electricity: null }
+};
+
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+function getPrice(item) {
+  let m = state.market[item];
+  let ratio = m.demand / (m.supply + 1);
+  let price = m.base * ratio;
+  return item === "oil"
+    ? Math.floor(clamp(price, 20, 80))
+    : Math.floor(clamp(price, 40, 160));
+}
+
+function showToast(msg) {
+  let el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove("show"), 2000);
+}
+
+function buyOil() {
+  let amount = parseInt(document.getElementById("buy_oil").value);
+  if (isNaN(amount) || amount < 1) return;
+  let cost = getPrice("oil") * amount;
+  if (state.money < cost) return showToast("돈이 부족합니다! (필요: " + cost.toLocaleString() + "원)");
+  state.money -= cost;
+  state.inventory.oil += amount;
+  state.market.oil.supply = Math.max(1, state.market.oil.supply - amount * 0.3);
+  state.queue.push({ amount, endTime: Date.now() + 5000, done: false });
+  saveState();
+  render();
+}
+
+function processQueue() {
+  let now = Date.now();
+  for (let q of state.queue) {
+    if (!q.done && now >= q.endTime) {
+      state.inventory.oil -= q.amount;
+      state.inventory.electricity += q.amount;
+      state.market.electricity.supply = Math.max(1, state.market.electricity.supply + q.amount * 0.2);
+      q.done = true;
+    }
+  }
+  state.queue = state.queue.filter(q => !q.done);
+}
+
+function sell() {
+  let amount = parseInt(document.getElementById("sell_elec").value);
+  if (isNaN(amount) || amount < 1) return;
+  let sellAmount = Math.min(amount, state.inventory.electricity);
+  if (sellAmount <= 0) return showToast("판매할 전기가 없습니다!");
+  let revenue = getPrice("electricity") * sellAmount;
+  state.inventory.electricity -= sellAmount;
+  state.money += revenue;
+  state.market.electricity.supply += sellAmount * 0.3;
+  saveState();
+  render();
+}
+
+function runAI() {
+  // 매 tick 60% 확률로 개입
+  if (Math.random() < 0.60) {
+    let em = state.market.electricity;
+    let es = em.supply;
+
+    // 전기 수요가 공급의 1.5배를 초과하지 않도록 headroom 계산
+    let maxDemand = es * 1.5;
+    let headroom = maxDemand - em.demand;
+    if (headroom <= 0.1) {
+      state.ai.lastTrade = 0;
+      return; // 상한 도달 → 거래 중단
+    }
+
+    // 전기 가격에 따른 공격성
+    let ep = getPrice("electricity");
+    let aggressiveness = ep > 100 ? 0.45 : ep > 70 ? 0.30 : 0.18;
+    let rate = aggressiveness + Math.random() * 0.15;
+    let trade = Math.floor(es * rate);
+    if (trade < 1 && es >= 2) trade = 1;
+
+    // 수요 상한(1.5x) 초과하지 않도록 trade 제한 (demand += trade * 0.4 역산)
+    let maxTrade = Math.floor(headroom / 0.4);
+    trade = Math.min(trade, maxTrade);
+    if (trade <= 0) { state.ai.lastTrade = 0; return; }
+
+    // 1. AI가 전기 시장에서 전기를 구매
+    //    → 전기 수요 증가 + 전기 공급 감소
+    em.demand = Math.min(em.demand + trade * 0.4, maxDemand);
+    em.supply = Math.max(1, em.supply - trade * 0.3);
+    state.ai.totalElecBought += trade;
+
+    // 2. 구매한 전기를 오일로 변환 → 오일 시장에 공급
+    //    → 오일 공급 증가 (오일 가격 하락 압박)
+    state.market.oil.supply += trade * 0.5;
+    state.ai.totalOilProduced += trade;
+    state.ai.lastTrade = trade;
+  }
+}
+
+function updateMarket() {
+  for (let k in state.market) {
+    let m = state.market[k];
+    m.demand += (Math.random() * 2 - 1) * 0.8;
+    m.supply += (Math.random() * 2 - 1) * 0.8;
+    if (Math.random() < 0.08) {
+      m.demand += (Math.random() * 2 - 1) * 2;
+      m.supply += (Math.random() * 2 - 1) * 2;
+    }
+    let baseTarget = k === "oil" ? 40 : 80;
+    m.base += (baseTarget - m.base) * 0.04;
+    m.demand = Math.max(1, m.demand);
+    m.supply = Math.max(1, m.supply);
+    // 전기 시장: 수요가 공급의 1.5배를 넘지 않도록 클램프
+    if (k === "electricity") {
+      m.demand = Math.min(m.demand, m.supply * 1.5);
+    }
+  }
+}
+
+function barPct(val, ref) {
+  return Math.min(100, Math.max(0, (val / ref) * 100)).toFixed(1) + "%";
+}
+
+function render() {
+  let op = getPrice("oil"), ep = getPrice("electricity");
+
+  document.getElementById("money").textContent = Math.floor(state.money).toLocaleString();
+  document.getElementById("oil_price").textContent = op.toLocaleString();
+  document.getElementById("elec_price").textContent = ep.toLocaleString();
+
+  function setTrend(elId, cur, prev) {
+    let el = document.getElementById(elId);
+    if (prev === null) { el.textContent = ""; return; }
+    let d = cur - prev;
+    if (d > 0) { el.textContent = "▲" + d; el.className = "price-trend trend-up"; }
+    else if (d < 0) { el.textContent = "▼" + Math.abs(d); el.className = "price-trend trend-down"; }
+    else { el.textContent = "−"; el.className = "price-trend trend-flat"; }
+  }
+
+  setTrend("oil_trend", op, state.prevPrices.oil);
+  setTrend("elec_trend", ep, state.prevPrices.electricity);
+  state.prevPrices.oil = op;
+  state.prevPrices.electricity = ep;
+
+  let ref = 30;
+  let om = state.market.oil, em = state.market.electricity;
+  document.getElementById("oil_supply").textContent = om.supply.toFixed(1);
+  document.getElementById("oil_demand").textContent = om.demand.toFixed(1);
+  document.getElementById("oil_s_bar").style.width = barPct(om.supply, ref);
+  document.getElementById("oil_d_bar").style.width = barPct(om.demand, ref);
+  document.getElementById("elec_supply").textContent = em.supply.toFixed(1);
+  document.getElementById("elec_demand").textContent = em.demand.toFixed(1);
+  document.getElementById("elec_s_bar").style.width = barPct(em.supply, ref);
+  document.getElementById("elec_d_bar").style.width = barPct(em.demand, ref);
+
+  document.getElementById("inv_oil").textContent = state.inventory.oil;
+  document.getElementById("inv_elec").textContent = state.inventory.electricity;
+  document.getElementById("queue_count").textContent = state.queue.length;
+
+  document.getElementById("ai_elec").textContent = state.ai.totalElecBought.toLocaleString();
+  document.getElementById("ai_oil").textContent = state.ai.totalOilProduced.toLocaleString();
+  document.getElementById("ai_last").textContent = state.ai.lastTrade;
+}
+
+function saveState() {
+  let saveData = {
+    money: state.money,
+    inventory: state.inventory,
+    market: state.market,
+    ai: state.ai
+  };
+  localStorage.setItem("batchEnergyTycoon_v1", JSON.stringify(saveData));
+}
+
+function loadState() {
+  try {
+    let raw = localStorage.getItem("batchEnergyTycoon_v1");
+    if (!raw) return;
+    let saved = JSON.parse(raw);
+    state.money = saved.money ?? state.money;
+    state.inventory = saved.inventory ?? state.inventory;
+    state.market = saved.market ?? state.market;
+    state.ai = saved.ai ?? state.ai;
+    if (!state.ai.lastTrade) state.ai.lastTrade = 0;
+  } catch(e) {
+    console.warn("세이브 불러오기 실패:", e);
+  }
+}
+
+function loop() {
+  processQueue();
+  runAI();
+  updateMarket();
+  render();
+  saveState();
+}
+
+loadState();
+render();
+setInterval(loop, 500);
+</script>
+</body>
+</html>
